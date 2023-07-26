@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pizza Price Calculator</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <h1 class="display-4 text-center my-4">Pizza Price Calculator</h1>
+    <form action="/addPizza" method="POST">
+      <div class="row">
+        <div class="col">
+          <label class="form-label">Pizza Company</label>
+          <div class="input-group">
+            <input type="text" class="form-control" name="company" placeholder="Enter pizza company" required>
+          </div>
+        </div>
+        <div class="col">
+          <label class="form-label">Pizza Name</label>
+          <div class="input-group">
+            <select class="form-select" name="name" required>
+              <option value="" disabled selected>Select a pizza</option>
+              <option value="Margherita">Margherita</option>
+              <option value="Pepperoni">Pepperoni</option>
+              <option value="BBQ Chicken">BBQ Chicken</option>
+              <option value="Hawaiian">Hawaiian</option>
+              <option value="Veggie">Veggie</option>
+              <!-- Add more options as needed -->
+            </select>
+          </div>
+        </div>
+    
+      </div>
+      <div class="row">
+        <div class="col">
+          <label class="form-label">Diameter</label>
+          <div class="input-group">
+          <input type="text" class="form-control" name="diameter" placeholder="Enter pizza diameter in cm" required>
+          <span class="input-group-text">cm</span>
+           </div>
+        </div>
+        <div class="col">
+          <label class="form-label">Price</label>
+          <div class="input-group">
+            <input type="text" class="form-control" name="price" placeholder="Enter pizza price" required>
+            <span class="input-group-text">zł</span>
+          </div>
+        </div>
+      </div>
+      <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Add Pizza</button>
+      </div>
+    </form>
+
+    <% let pizzaNames = [...new Set(pizzas.map(pizza => pizza.name))]; %>
+    <% pizzaNames.forEach(function(name) { %>
+    <h2 class="display-5 text-center my-4"><%= name %></h2>
+    <!-- Filter form -->
+    <div class="mb-3">
+      <input type="text" id="filterInput" onkeyup="filterTable()" class="form-control" placeholder="Type to filter...">
+    </div>
+    
+    <table class="table table-striped table-hover" id="pizzaTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Company</th>
+          <th>Diameter (cm)</th>
+          <th>Price (zł)</th>
+          <th>Total Area (cm<sup>2</sup>)</th>
+          <th>Price per cm<sup>2</sup> (zł)</th>
+          <th></th>
+          <th>Edit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% let specificPizzas = pizzas.filter(pizza => pizza.name === name); %>
+        <% let minPrice = Math.min(...specificPizzas.map(pizza => parseFloat(pizza.pricePerCm2))); %>
+        <% specificPizzas.forEach(function(pizza, index) { %>
+          <tr class="<%= parseFloat(pizza.pricePerCm2) === minPrice ? 'table-success' : '' %>">
+            <td><%= pizza.name %></td>
+            <td><%= pizza.company %></td>
+            <td><%= pizza.diameter %></td>
+            <td><%= pizza.price %></td>
+            <td><%= parseFloat(pizza.area).toFixed(2) %></td>
+            <td><%= parseFloat(pizza.pricePerCm2).toFixed(4) %></td>
+            <td><% if (parseFloat(pizza.pricePerCm2) === minPrice) { %> <i class="bi bi-award"></i> <% } %></td>
+            <td>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal<%= pizza.name %><%= index %>"><i class="bi bi-pencil-square"></i></button>
+            </td>
+          </tr>
+        
+          <!-- Modal -->
+          <div class="modal fade" id="editModal<%= pizza.name %><%= index %>" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="editModalLabel">Edit Pizza</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <form action="/updatePizza/<%= index %>" method="POST">
+                    <div class="mb-3">
+                      <label class="form-label">Pizza Company</label>
+                      <input type="text" class="form-control" name="company" value="<%= pizza.company %>" required>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label">Pizza Name</label>
+                      <input type="text" class="form-control" name="name" value="<%= pizza.name %>" required>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label">Diameter</label>
+                      <input type="number" class="form-control" name="diameter" value="<%= pizza.diameter %>" required>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label">Price</label>
+                      <input type="number" class="form-control" name="price" value="<%= pizza.price %>" required>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                      <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      </tbody>
+    </table>
+    <% }); %>
+  </div>
+
+
+  <script>
+    function filterTable() {
+      let input, filter, table, tr, td, i, txtValue;
+      input = document.getElementById("filterInput");
+      filter = input.value.toUpperCase();
+      table = document.getElementById("pizzaTable");
+      tr = table.getElementsByTagName("tr");
+
+      for (i = 0; i < tr.length; i++) {
+        td = tr[i].getElementsByTagName("td");
+        for (let j = 0; j < td.length; j++) {
+          if (td[j]) {
+            txtValue = td[j].textContent || td[j].innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+              tr[i].style.display = "";
+              break; // once match for this row found, no need to check other columns
+            } else {
+              tr[i].style.display = "none";
+            }
+          }       
+        }
+      }
+    }
+  </script>
+</body>
+</html>
